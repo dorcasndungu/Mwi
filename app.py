@@ -7,19 +7,28 @@ from werkzeug.utils import secure_filename
 import os
 import logging
 
+# Configure logging to output to stdout/stderr for Railway
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+
 # Try to import face recognition libraries, fall back to demo mode if not available
 try:
     import face_recognition
     import cv2
     import numpy as np
     FACE_RECOGNITION_AVAILABLE = True
-    print("✅ Real face recognition libraries loaded successfully!")
+    logger.info("✅ Real face recognition libraries loaded successfully!")
 except ImportError as e:
     FACE_RECOGNITION_AVAILABLE = False
-    print(f"⚠️  Face recognition libraries not available: {e}")
-    print("🔄 Running in DEMO mode - will simulate face matching")
+    logger.warning(f"⚠️  Face recognition libraries not available: {e}")
+    logger.info("🔄 Running in DEMO mode - will simulate face matching")
     import random
-
 
 app = Flask(__name__)
 # Use environment variable for SECRET_KEY
@@ -30,14 +39,11 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 # Create upload directory
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-# Configure logging to output to stdout/stderr for Railway
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
-
 # Add a health check endpoint
 @app.route('/health')
 def health_check():
-    return jsonify({"status": "healthy"}), 200
+    logger.info("Health check requested")
+    return jsonify({"status": "healthy", "face_recognition": FACE_RECOGNITION_AVAILABLE}), 200
 
 def is_valid_drive_url(url):
     """Validate Google Drive folder URL"""
@@ -313,4 +319,5 @@ def too_large(_):
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
+    logger.info(f"Starting application on port {port}")
     app.run(host='0.0.0.0', port=port)

@@ -31,6 +31,10 @@ RUN mkdir -p uploads && \
 # Set environment variables
 ENV FLASK_APP=app.py
 ENV PYTHONUNBUFFERED=1
+ENV PORT=5000
 
-# Run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:$PORT", "app:app"] 
+# Expose the port
+EXPOSE 5000
+
+# Run the application with gunicorn
+CMD gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 0 app:app 

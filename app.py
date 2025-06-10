@@ -34,6 +34,11 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+# Add a health check endpoint
+@app.route('/health')
+def health_check():
+    return jsonify({"status": "healthy"}), 200
+
 def is_valid_drive_url(url):
     """Validate Google Drive folder URL"""
     drive_patterns = [
@@ -307,4 +312,5 @@ def too_large(_):
     return jsonify({'error': 'File too large. Maximum size is 16MB.'}), 413
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)

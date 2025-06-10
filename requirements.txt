@@ -3,8 +3,8 @@ requests==2.31.0
 Pillow==10.0.1
 Werkzeug==2.3.7
 gunicorn==21.2.0
-# Use pre-built wheel for dlib to avoid system-level dependencies
-dlib-binary==19.21.99
+# Use pre-built wheel for dlib
+https://github.com/jloh02/dlib/releases/download/v19.22/dlib-19.22.99-cp39-cp39-linux_x86_64.whl
 face-recognition==1.3.0
 opencv-python-headless==4.8.1.78
 numpy==1.24.3

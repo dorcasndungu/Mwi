@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: mwi-photo-extractor
+    runtime: python
+    plan: free
+    # Build command with extended timeout for face recognition libraries
+    # dlib can take 10-15 minutes to compile
+    buildCommand: |
+      pip install --upgrade pip setuptools wheel && 
+      pip install -r requirements.txt || 
+      (echo "⚠️  Some dependencies failed to install. App will run in demo mode." && pip install Flask==2.3.3 requests==2.31.0 Pillow==10.0.1 Werkzeug==2.3.7 gunicorn==21.2.0 numpy==1.24.3)
+    startCommand: gunicorn --bind 0.0.0.0:$PORT app:app --timeout 300 --workers 2 --preload
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.18
+      - key: PORT
+        value: 10000
+      - key: BUILD_TIMEOUT
+        value: 1800
+    healthCheckPath: /health
+    autoDeploy: true
+

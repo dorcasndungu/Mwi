@@ -1,6 +1,10 @@
-# YourPhotos - AI Photo Extractor 📸
+# Mwi - AI Photo Extractor 📸
+**Team Collaboration Project - 6 Students**
 
 A professional Flask web application that uses AI face recognition to automatically find and extract photos containing your face from Google Drive folders.
+
+## 👥 Team Project
+This is a collaborative class project developed by 6 students, each responsible for different components of the application.
 
 ## 🌟 Features
 
@@ -15,11 +19,10 @@ A professional Flask web application that uses AI face recognition to automatica
 
 ### Prerequisites
 
-- Python 3.9+
-- pip package manager
+- Docker and Docker Compose
 - Google Drive folder with photos (set to "Anyone with the link can view")
 
-### Local Development
+### Local Development with Docker
 
 1. **Clone the repository**
    ```bash
@@ -27,18 +30,29 @@ A professional Flask web application that uses AI face recognition to automatica
    cd yourphotos-app
    ```
 
+2. **Start the application**
+   ```bash
+   docker-compose up --build
+   ```
+
+3. **Open your browser**
+   Navigate to `http://localhost:5000`
+
+The application will automatically reload when you make changes to the code.
+
+### Manual Development (Without Docker)
+
+If you prefer to run without Docker:
+
+1. **Install Python 3.9+**
 2. **Install dependencies**
    ```bash
    pip install -r requirements.txt
    ```
-
 3. **Run the application**
    ```bash
    python app.py
    ```
-
-4. **Open your browser**
-   Navigate to `http://localhost:5000`
 
 ## 🌐 Deployment on Render
 

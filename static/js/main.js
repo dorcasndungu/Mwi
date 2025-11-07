@@ -19,32 +19,69 @@ function setupFileUpload() {
     const previewContainer = document.getElementById('selfiePreview');
     const previewImage = document.getElementById('previewImage');
     const removeButton = document.querySelector('.remove-image');
+    const uploadContent = document.querySelector('.upload-content');
+
+    console.log('Setting up file upload...'); // Debug log
 
     // Click to upload
     uploadArea.addEventListener('click', function(e) {
+        console.log('Upload area clicked'); // Debug log
+        console.log('Click target:', e.target); // Debug log
+        console.log('Is remove button:', e.target === removeButton); // Debug log
+        console.log('Is remove button child:', e.target.closest('.remove-image')); // Debug log
+        
+        // Only trigger if not clicking the remove button
         if (e.target !== removeButton && !e.target.closest('.remove-image')) {
+            console.log('Triggering file input click'); // Debug log
+            e.preventDefault();
+            e.stopPropagation();
+            fileInput.click();
+        }
+    });
+
+    // Add click handler to upload content as well
+    uploadContent.addEventListener('click', function(e) {
+        console.log('Upload content clicked'); // Debug log
+        e.preventDefault();
+        e.stopPropagation();
+        fileInput.click();
+    });
+
+    // Add keyboard support for accessibility
+    uploadArea.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+            console.log('Keyboard trigger'); // Debug log
+            e.preventDefault();
             fileInput.click();
         }
     });
 
     // File input change
     fileInput.addEventListener('change', function(e) {
-        handleFileSelect(e.target.files[0]);
+        console.log('File input changed'); // Debug log
+        const file = e.target.files[0];
+        console.log('Selected file:', file); // Debug log
+        if (file) {
+            handleFileSelect(file);
+        }
     });
 
     // Drag and drop functionality
     uploadArea.addEventListener('dragover', function(e) {
         e.preventDefault();
+        e.stopPropagation();
         uploadArea.classList.add('dragover');
     });
 
     uploadArea.addEventListener('dragleave', function(e) {
         e.preventDefault();
+        e.stopPropagation();
         uploadArea.classList.remove('dragover');
     });
 
     uploadArea.addEventListener('drop', function(e) {
         e.preventDefault();
+        e.stopPropagation();
         uploadArea.classList.remove('dragover');
         
         const files = e.dataTransfer.files;
@@ -55,11 +92,13 @@ function setupFileUpload() {
 
     // Remove image
     removeButton.addEventListener('click', function(e) {
+        e.preventDefault();
         e.stopPropagation();
         removeImage();
     });
 
     function handleFileSelect(file) {
+        console.log('Handling file select:', file); // Debug log
         if (!file) return;
 
         // Validate file type
@@ -74,25 +113,22 @@ function setupFileUpload() {
             return;
         }
 
-        // Update file input
-        const dt = new DataTransfer();
-        dt.items.add(file);
-        fileInput.files = dt.files;
-
         // Show preview
         const reader = new FileReader();
         reader.onload = function(e) {
             previewImage.src = e.target.result;
-            document.querySelector('.upload-content').style.display = 'none';
+            uploadContent.style.display = 'none';
             previewContainer.style.display = 'block';
+            console.log('Preview updated'); // Debug log
         };
         reader.readAsDataURL(file);
     }
 
     function removeImage() {
+        console.log('Removing image'); // Debug log
         fileInput.value = '';
         previewContainer.style.display = 'none';
-        document.querySelector('.upload-content').style.display = 'block';
+        uploadContent.style.display = 'block';
     }
 }
 
@@ -102,9 +138,11 @@ function setupFormSubmission() {
     const submitBtn = document.getElementById('submitBtn');
     const progressSection = document.getElementById('progressSection');
     const progressBar = document.querySelector('.progress-bar');
+    const statusMessage = document.getElementById('statusMessage');
 
     form.addEventListener('submit', function(e) {
         e.preventDefault();
+        console.log('Form submitted'); // Debug log
         
         // Validate form
         if (!validateForm()) {
@@ -122,16 +160,35 @@ function setupFormSubmission() {
     });
 
     function validateForm() {
-        const selfie = document.getElementById('selfie').files[0];
+        const fileInput = document.getElementById('selfie');
+        const selfie = fileInput.files[0];
         const driveLink = document.getElementById('drive_link').value.trim();
 
-        if (!selfie) {
+        console.log('Validating form...'); // Debug log
+        console.log('File input:', fileInput); // Debug log
+        console.log('Selected file:', selfie); // Debug log
+        console.log('File input value:', fileInput.value); // Debug log
+
+        // Check if file is actually selected
+        if (!selfie || !fileInput.value) {
             showAlert('Please upload your selfie.', 'danger');
+            return false;
+        }
+
+        // Additional file validation
+        if (!selfie.type.startsWith('image/')) {
+            showAlert('Please select a valid image file.', 'danger');
+            return false;
+        }
+
+        if (selfie.size > 16 * 1024 * 1024) {
+            showAlert('File size must be less than 16MB.', 'danger');
             return false;
         }
 
         if (!driveLink) {
             showAlert('Please enter your Google Drive folder link.', 'danger');
+            document.getElementById('drive_link').focus();
             return false;
         }
 
@@ -139,6 +196,7 @@ function setupFormSubmission() {
         const drivePattern = /drive\.google\.com\/drive\/folders\//;
         if (!drivePattern.test(driveLink)) {
             showAlert('Please enter a valid Google Drive folder link.', 'danger');
+            document.getElementById('drive_link').focus();
             return false;
         }
 
@@ -149,61 +207,114 @@ function setupFormSubmission() {
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
         progressSection.style.display = 'block';
+        statusMessage.textContent = 'Starting processing...';
         hideAlert();
-
-        // Animate progress bar
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += Math.random() * 15;
-            if (progress > 90) progress = 90;
-            
-            progressBar.style.width = progress + '%';
-            
-            if (progress >= 90) {
-                clearInterval(interval);
-            }
-        }, 500);
     }
 
     function submitForm(formData) {
+        console.log('Submitting form...'); // Debug log
+        
+        // Use fetch with streaming response for Server-Sent Events
         fetch('/process', {
             method: 'POST',
             body: formData
         })
         .then(response => {
-            if (response.ok) {
-                // File download
-                return response.blob().then(blob => {
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'yourphotos.zip';
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    document.body.removeChild(a);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            // Get the reader for streaming
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            
+            // Function to process each chunk
+            function processChunk() {
+                return reader.read().then(({ done, value }) => {
+                    if (done) {
+                        console.log('Stream finished');
+                        return;
+                    }
                     
-                    showAlert('Photos downloaded successfully! Check your downloads folder.', 'success');
-                    resetForm();
-                });
-            } else {
-                return response.json().then(data => {
-                    throw new Error(data.error || 'An error occurred');
+                    // Decode the chunk and add to buffer
+                    buffer += decoder.decode(value, { stream: true });
+                    
+                    // Process complete lines (SSE format: "data: {...}\n\n")
+                    const lines = buffer.split('\n\n');
+                    buffer = lines.pop() || ''; // Keep incomplete line in buffer
+                    
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const jsonStr = line.substring(6); // Remove "data: " prefix
+                                const data = JSON.parse(jsonStr);
+                                console.log('Progress update:', data); // Debug log
+                                
+                                if (data.error) {
+                                    showAlert(data.error, 'danger');
+                                    resetForm();
+                                    return;
+                                }
+                                
+                                if (data.progress !== undefined) {
+                                    progressBar.style.width = data.progress + '%';
+                                    if (statusMessage) {
+                                        statusMessage.textContent = data.status || 'Processing...';
+                                    }
+                                }
+                                
+                                if (data.download_url) {
+                                    // Trigger download
+                                    window.location.href = data.download_url;
+                                    showAlert('Processing complete! Your photos are being downloaded.', 'success');
+                                    resetForm();
+                                    return;
+                                }
+                            } catch (e) {
+                                console.error('Error parsing SSE data:', e, line);
+                            }
+                        }
+                    }
+                    
+                    // Continue reading
+                    return processChunk();
                 });
             }
+            
+            // Start processing the stream
+            return processChunk();
         })
         .catch(error => {
             console.error('Error:', error);
-            showAlert(error.message || 'An error occurred while processing your request.', 'danger');
+            showAlert('An error occurred while processing your request. Please try again.', 'danger');
             resetForm();
         });
     }
 
     function resetForm() {
+        // Reset file input and preview
+        const fileInput = document.getElementById('selfie');
+        const previewContainer = document.getElementById('selfiePreview');
+        const uploadContent = document.querySelector('.upload-content');
+        
+        fileInput.value = '';
+        previewContainer.style.display = 'none';
+        uploadContent.style.display = 'block';
+        
+        // Reset drive link input
+        document.getElementById('drive_link').value = '';
+        
+        // Reset submit button
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="fas fa-magic me-2"></i>Extract My Photos';
+        
+        // Hide progress section
         progressSection.style.display = 'none';
-        document.querySelector('.progress-bar').style.width = '0%';
+        
+        // Reset progress bar
+        progressBar.style.width = '0%';
+        statusMessage.textContent = '';
     }
 }
 

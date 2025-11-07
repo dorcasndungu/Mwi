@@ -79,8 +79,9 @@
                                         <span class="step-number">1</span>
                                         <h5 class="mb-0">Upload Your Selfie</h5>
                                     </div>
-                                    <div class="upload-area" id="selfieUpload">
-                                        <input type="file" id="selfie" name="selfie" accept="image/*" required hidden>
+                                    <div class="upload-area" id="selfieUpload" role="button" tabindex="0">
+                                        <input type="file" id="selfie" name="selfie" accept="image/*"
+                                               style="opacity:0;position:absolute;width:100%;height:100%;left:0;top:0;z-index:2;cursor:pointer;">
                                         <div class="upload-content">
                                             <i class="fas fa-cloud-upload-alt upload-icon"></i>
                                             <p class="mb-2">Click to upload your selfie</p>
@@ -92,7 +93,7 @@
                                                 <i class="fas fa-times"></i>
                                             </button>
                                         </div>
-                                    </div>
+                                    </label>
                                 </div>
 
                                 <!-- Step 2: Google Drive Link -->
@@ -136,7 +137,7 @@
                             <div id="progressSection" class="mt-4" style="display: none;">
                                 <div class="text-center mb-3">
                                     <h5>Processing Your Photos...</h5>
-                                    <p class="text-muted">This may take a few minutes depending on the number of photos</p>
+                                    <p class="text-muted" id="statusMessage">Starting processing...</p>
                                 </div>
                                 <div class="progress mb-3">
                                     <div class="progress-bar progress-bar-striped progress-bar-animated" 

@@ -1,10 +1,6 @@
 # Mwi - AI Photo Extractor 📸
-**Team Collaboration Project - 6 Students**
 
 A professional Flask web application that uses AI face recognition to automatically find and extract photos containing your face from Google Drive folders.
-
-## 👥 Team Project
-This is a collaborative class project developed by 6 students, each responsible for different components of the application.
 
 ## 🌟 Features
 
